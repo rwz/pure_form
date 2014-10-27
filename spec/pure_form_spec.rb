@@ -1,8 +1,8 @@
 require "spec_helper"
 
-describe PureForm do
+describe PureForm::Base do
   def build_class(&block)
-    Class.new(described_class::Base, &block)
+    Class.new(described_class, &block)
   end
 
   subject(:instance){ klass.new }
@@ -61,8 +61,15 @@ describe PureForm do
       end
 
       context "boolean" do
-        it "defines boolean attributes using symbol" do
+        it "defines boolean attribute using symbol" do
           klass.attribute :admin, type: :boolean
+        end
+
+        it "defines boolean attribute using class" do
+          klass.attribute :admin, type: described_class::Boolean
+        end
+
+        after do
           expect(klass.attributes[:admin].value_type).to be_instance_of(PureForm::Types::BooleanType)
         end
       end

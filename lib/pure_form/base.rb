@@ -4,6 +4,12 @@ module PureForm
   class Base
     include ActiveModel::Model
 
+    class Boolean
+      def self.to_s
+        "Boolean"
+      end
+    end
+
     class_attribute :attributes, instance_accessor: false, instance_predicate: false
 
     class << self
