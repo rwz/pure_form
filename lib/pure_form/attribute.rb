@@ -38,10 +38,12 @@ module PureForm
       context.instance_eval do
         define_method name, &block
       end
+
+      nil
     end
 
     def setter_proc
-      attribute_name = self.name
+      attribute_name = name
       type = value_type
       ->(value){ store_attribute(attribute_name, type.typecast(value)) }
     end
@@ -53,12 +55,12 @@ module PureForm
     end
 
     def getter_proc
-      attribute_name = self.name
+      attribute_name = name
       ->{ read_attribute(attribute_name) }
     end
 
     def predicate_proc
-      attribute_name = self.name
+      attribute_name = name
       ->{ public_send(attribute_name).present? }
     end
 
