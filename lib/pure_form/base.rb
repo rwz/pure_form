@@ -16,7 +16,7 @@ module PureForm
       def attribute(name, **options)
         attribute = Attribute.new(self, name, options)
         self.attributes ||= HashWithIndifferentAccess.new
-        self.attributes = attributes.merge(name => attribute)
+        self.attributes = attributes.merge(attribute.name => attribute)
         attribute.define
       end
 
@@ -28,6 +28,18 @@ module PureForm
         new_name = build_model_name(name)
         singleton_class.instance_eval do
           define_method(:model_name){ new_name }
+        end
+      end
+
+      def copy_attributes_from(model, **options)
+        raise ArgumentError unless model < ActiveRecord::Base
+
+        included = Array.wrap(options.fetch(:only){ model.column_names }).map(&:to_s)
+        excluded = Array.wrap(options[:except]).map(&:to_s)
+
+        model.columns.each do |column|
+          next if !column.name.in?(included) || column.name.in?(excluded)
+          attribute column.name, type: column.type
         end
       end
 

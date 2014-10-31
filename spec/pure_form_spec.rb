@@ -458,6 +458,69 @@ describe PureForm::Base do
     it "returns false on update when validations fail" do
       expect(instance.update(name: nil, age: "foo")).to eq(false)
     end
+  end
 
+  context "copy attributes from AR::Base" do
+    it "raises an error when trying to copy attributes from non AR::Base class" do
+      action = ->{ build_class.copy_attributes_from Object }
+      expect(&action).to raise_error(ArgumentError)
+    end
+
+    context "with no options" do
+      let :klass do
+        build_class do
+          copy_attributes_from ::Dummy
+        end
+      end
+
+      it "copies string attribute from AR model" do
+        expect(klass.attributes[:email].value_type).to be_instance_of(PureForm::Types::StringType)
+      end
+
+      it "copies integer attribute from AR model" do
+        expect(klass.attributes[:age].value_type).to be_instance_of(PureForm::Types::IntegerType)
+      end
+
+      it "copies date attribute from AR model" do
+        expect(klass.attributes[:birthday].value_type).to be_instance_of(PureForm::Types::DateType)
+      end
+
+      it "copies boolean attribute from AR model" do
+        expect(klass.attributes[:admin].value_type).to be_instance_of(PureForm::Types::BooleanType)
+      end
+
+      it "copies datetime attributes from AR model" do
+        expect(klass.attributes[:updated_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
+        expect(klass.attributes[:created_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
+      end
+    end
+
+    context "only/except" do
+      let(:klass){ build_class }
+
+      it "supports only option for a single attribute" do
+        klass.copy_attributes_from Dummy, only: :age
+        expect(klass.attributes).to include(:age)
+        expect(klass.attributes).not_to include(:email, :birthday, :admin, :updated_at, :created_at)
+      end
+
+      it "supports only option for an array of attributes" do
+        klass.copy_attributes_from Dummy, only: %i[updated_at created_at]
+        expect(klass.attributes).to include(:updated_at, :created_at)
+        expect(klass.attributes).not_to include(:email, :age, :birthday, :admin)
+      end
+
+      it "supports except option for a single attribute" do
+        klass.copy_attributes_from Dummy, except: :age
+        expect(klass.attributes).to include(:email, :birthday, :admin, :updated_at, :created_at)
+        expect(klass.attributes).to_not include(:age)
+      end
+
+      it "supports except option for an array of attributes" do
+        klass.copy_attributes_from Dummy, except: %i[updated_at created_at]
+        expect(klass.attributes).to include(:email, :age, :birthday, :admin)
+        expect(klass.attributes).not_to include(:updated_at, :created_at)
+      end
+    end
   end
 end
