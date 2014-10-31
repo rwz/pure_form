@@ -87,6 +87,20 @@ describe PureForm::Base do
           expect(klass.attributes[:birthday].value_type).to be_instance_of(PureForm::Types::DateType)
         end
       end
+
+      context "datetime" do
+        it "defines datetime attribute using symbol" do
+          klass.attribute :updated_at, type: :datetime
+        end
+
+        it "defines datetime attribute using class" do
+          klass.attribute :updated_at, type: DateTime
+        end
+
+        after do
+          expect(klass.attributes[:updated_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
+        end
+      end
     end
 
     context "reading" do
@@ -129,6 +143,7 @@ describe PureForm::Base do
           attribute :height
           attribute :balance
           attribute :birthday, type: :date
+          attribute :updated_at, type: :datetime
         end
       end
 
@@ -165,29 +180,45 @@ describe PureForm::Base do
           instance.assign_attributes(
             "birthday(1i)" => "1986",
             "birthday(2i)" => "08",
-            "birthday(3i)" => "25"
+            "birthday(3i)" => "25",
+            "updated_at(1i)" => "2014",
+            "updated_at(2i)" => "10",
+            "updated_at(3i)" => "31",
+            "updated_at(4i)" => "12",
+            "updated_at(5i)" => "13",
+            "updated_at(6i)" => "14"
           )
 
           expect(instance.birthday).to eq(Date.new(1986, 8, 25))
+          expect(instance.updated_at).to eq(DateTime.new(2014, 10, 31, 12, 13, 14))
         end
 
         it "assigns complex attribute to nil when values are missing" do
           instance.assign_attributes(
             "birthday(1i)" => "1986",
-            "birthday(3i)" => "25"
+            "birthday(3i)" => "25",
+            "updated_at(4i)" => "10"
           )
 
           expect(instance.birthday).to be_nil
+          expect(instance.updated_at).to be_nil
         end
 
         it "sets complex attribute to nil when values are invalid" do
           instance.assign_attributes(
             "birthday(1i)" => "1986",
             "birthday(2i)" => "800",
-            "birthday(3i)" => "2500"
+            "birthday(3i)" => "2500",
+            "updated_at(1i)" => "2014",
+            "updated_at(2i)" => "10",
+            "updated_at(3i)" => "31",
+            "updated_at(4i)" => "12",
+            "updated_at(5i)" => "130",
+            "updated_at(6i)" => "14"
           )
 
           expect(instance.birthday).to be_nil
+          expect(instance.updated_at).to be_nil
         end
       end
     end

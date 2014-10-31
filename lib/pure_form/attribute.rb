@@ -66,8 +66,9 @@ module PureForm
 
     def build_value_type
       return Types::BaseType.new(options) unless options.key?(:type)
-      type = options.delete(:type)
-      "PureForm::Types::#{type.to_s.classify}Type".constantize.new(options)
+      type = options.delete(:type).to_s
+      type = "date_time" if type == "datetime"
+      "PureForm::Types::#{type.camelize}Type".constantize.new(options)
     end
   end
 end
