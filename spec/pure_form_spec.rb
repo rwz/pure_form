@@ -166,6 +166,18 @@ describe PureForm::Base do
           }
         end
 
+        it "only assignes defined attributes using assign_defined_attributes method" do
+          instance.assign_defined_attributes(
+            name:   "Pavel",
+            age:    28,
+            admin:  true,
+            height: 179,
+            foo:    "foo",
+            bar:    Object.new,
+            baz:    false
+          )
+        end
+
         after do
           expect(instance.name).to eq("Pavel")
           expect(instance.age).to eq(28)

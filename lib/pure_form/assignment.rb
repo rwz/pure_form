@@ -1,9 +1,9 @@
 module PureForm
   class Assignment
-    attr_reader :form, :attributes
+    attr_reader :form, :attributes, :options
 
-    def initialize(form, attributes)
-      @form, @attributes = form, attributes
+    def initialize(form, attributes, **options)
+      @form, @attributes, @options = form, attributes, options
     end
 
     def perform
@@ -21,9 +21,10 @@ module PureForm
     private
 
     def assign_attribute(attribute_name, value)
-      setter = "#{attribute_name}="
-      fail Errors::UnknownAttributeError.build(attribute_name) unless form.respond_to?(setter)
-      form.public_send setter, value
+      method_name = "#{attribute_name}="
+      call_form_method_or_fail method_name, value do
+        fail Errors::UnknownAttributeError.build(attribute_name)
+      end
     end
 
     def assign_complex_attribute(complex_attribute_name, value)
@@ -41,8 +42,17 @@ module PureForm
     def flush_complex_attributes
       complex_attributes.each do |key, values|
         method_name = "set_complex_#{key}_value"
-        raise Errors::MissingComplexAttributeError.build(key) unless form.respond_to?(method_name)
-        form.public_send method_name, *values
+        call_form_method_or_fail method_name, *values do
+          raise Errors::MissingComplexAttributeError.build(key)
+        end
+      end
+    end
+
+    def call_form_method_or_fail(method_name, *args)
+      if form.respond_to?(method_name)
+        form.public_send(method_name, *args)
+      else
+        yield unless options[:ignore_undefined]
       end
     end
   end

@@ -68,6 +68,10 @@ module PureForm
       Assignment.new(self, attributes).perform
     end
 
+    def assign_defined_attributes(attributes)
+      Assignment.new(self, attributes, ignore_undefined: true).perform
+    end
+
     alias_method :attributes=, :assign_attributes
 
     def attributes
