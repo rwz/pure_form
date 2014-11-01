@@ -278,6 +278,8 @@ describe PureForm::Base do
         expect(instance.something).to eq(123)
         instance.something = "foo"
         expect(instance.something).to eq(0)
+        instance.something = ""
+        expect(instance.something).to be_nil
         instance.something = Object.new
         expect(instance.something).to be_nil
       end
@@ -293,6 +295,8 @@ describe PureForm::Base do
         expect(instance.something).to eq(123.4)
         instance.something = "foo"
         expect(instance.something).to eq(0.0)
+        instance.something = ""
+        expect(instance.something).to be_nil
         instance.something = Object.new
         expect(instance.something).to be_nil
       end
