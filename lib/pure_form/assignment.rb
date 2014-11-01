@@ -16,6 +16,8 @@ module PureForm
       end
 
       flush_complex_attributes
+
+      form.attributes
     end
 
     private
