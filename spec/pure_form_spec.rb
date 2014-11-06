@@ -5,16 +5,26 @@ describe PureForm::Base do
     Class.new(described_class, &block)
   end
 
+  def get_attribute_type(klass, attribute_name)
+    attribute = klass.defined_attributes[attribute_name]
+    attribute.value_type.class if attribute
+  end
+
+  def form_name(klass)
+    klass.model_name.param_key
+  end
+
   subject(:instance){ klass.new }
 
   context "attributes" do
     context "defining" do
+
       let(:klass){ build_class }
 
       context "base" do
         it "defines base attribute by default" do
           klass.attribute :first_name
-          expect(klass.attributes[:first_name].value_type).to be_instance_of(PureForm::Types::BaseType)
+          expect(get_attribute_type(klass, :first_name)).to eq(PureForm::Types::BaseType)
         end
       end
 
@@ -28,7 +38,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:first_name].value_type).to be_instance_of(PureForm::Types::StringType)
+          expect(get_attribute_type(klass, :first_name)).to eq(PureForm::Types::StringType)
         end
       end
 
@@ -42,7 +52,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:age].value_type).to be_instance_of(PureForm::Types::IntegerType)
+          expect(get_attribute_type(klass, :age)).to eq(PureForm::Types::IntegerType)
         end
       end
 
@@ -56,7 +66,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:height].value_type).to be_instance_of(PureForm::Types::FloatType)
+          expect(get_attribute_type(klass, :height)).to eq(PureForm::Types::FloatType)
         end
       end
 
@@ -70,7 +80,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:admin].value_type).to be_instance_of(PureForm::Types::BooleanType)
+          expect(get_attribute_type(klass, :admin)).to eq(PureForm::Types::BooleanType)
         end
       end
 
@@ -84,7 +94,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:birthday].value_type).to be_instance_of(PureForm::Types::DateType)
+          expect(get_attribute_type(klass, :birthday)).to eq(PureForm::Types::DateType)
         end
       end
 
@@ -98,7 +108,7 @@ describe PureForm::Base do
         end
 
         after do
-          expect(klass.attributes[:updated_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
+          expect(get_attribute_type(klass, :updated_at)).to eq(PureForm::Types::DateTimeType)
         end
       end
     end
@@ -414,10 +424,6 @@ describe PureForm::Base do
   end
 
   context "form name" do
-    def form_name(klass)
-      klass.model_name.param_key
-    end
-
     it "has default form name based on class name" do
       SpecNamespace::RegistrationForm = build_class
       expect(form_name(SpecNamespace::RegistrationForm)).to eq("registration")
@@ -490,24 +496,24 @@ describe PureForm::Base do
       end
 
       it "copies string attribute from AR model" do
-        expect(klass.attributes[:email].value_type).to be_instance_of(PureForm::Types::StringType)
+        expect(get_attribute_type(klass, :email)).to eq(PureForm::Types::StringType)
       end
 
       it "copies integer attribute from AR model" do
-        expect(klass.attributes[:age].value_type).to be_instance_of(PureForm::Types::IntegerType)
+        expect(get_attribute_type(klass, :age)).to eq(PureForm::Types::IntegerType)
       end
 
       it "copies date attribute from AR model" do
-        expect(klass.attributes[:birthday].value_type).to be_instance_of(PureForm::Types::DateType)
+        expect(get_attribute_type(klass, :birthday)).to eq(PureForm::Types::DateType)
       end
 
       it "copies boolean attribute from AR model" do
-        expect(klass.attributes[:admin].value_type).to be_instance_of(PureForm::Types::BooleanType)
+        expect(get_attribute_type(klass, :admin)).to eq(PureForm::Types::BooleanType)
       end
 
       it "copies datetime attributes from AR model" do
-        expect(klass.attributes[:updated_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
-        expect(klass.attributes[:created_at].value_type).to be_instance_of(PureForm::Types::DateTimeType)
+        expect(get_attribute_type(klass, :updated_at)).to eq(PureForm::Types::DateTimeType)
+        expect(get_attribute_type(klass, :created_at)).to eq(PureForm::Types::DateTimeType)
       end
     end
 
@@ -516,26 +522,26 @@ describe PureForm::Base do
 
       it "supports only option for a single attribute" do
         klass.copy_attributes_from Dummy, only: :age
-        expect(klass.attributes).to include(:age)
-        expect(klass.attributes).not_to include(:email, :birthday, :admin, :updated_at, :created_at)
+        expect(klass.defined_attributes).to include(:age)
+        expect(klass.defined_attributes).not_to include(:email, :birthday, :admin, :updated_at, :created_at)
       end
 
       it "supports only option for an array of attributes" do
         klass.copy_attributes_from Dummy, only: %i[updated_at created_at]
-        expect(klass.attributes).to include(:updated_at, :created_at)
-        expect(klass.attributes).not_to include(:email, :age, :birthday, :admin)
+        expect(klass.defined_attributes).to include(:updated_at, :created_at)
+        expect(klass.defined_attributes).not_to include(:email, :age, :birthday, :admin)
       end
 
       it "supports except option for a single attribute" do
         klass.copy_attributes_from Dummy, except: :age
-        expect(klass.attributes).to include(:email, :birthday, :admin, :updated_at, :created_at)
-        expect(klass.attributes).to_not include(:age)
+        expect(klass.defined_attributes).to include(:email, :birthday, :admin, :updated_at, :created_at)
+        expect(klass.defined_attributes).to_not include(:age)
       end
 
       it "supports except option for an array of attributes" do
         klass.copy_attributes_from Dummy, except: %i[updated_at created_at]
-        expect(klass.attributes).to include(:email, :age, :birthday, :admin)
-        expect(klass.attributes).not_to include(:updated_at, :created_at)
+        expect(klass.defined_attributes).to include(:email, :age, :birthday, :admin)
+        expect(klass.defined_attributes).not_to include(:updated_at, :created_at)
       end
     end
   end

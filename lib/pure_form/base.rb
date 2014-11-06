@@ -10,13 +10,13 @@ module PureForm
       end
     end
 
-    class_attribute :attributes, instance_accessor: false, instance_predicate: false
+    class_attribute :defined_attributes, instance_accessor: false, instance_predicate: false
 
     class << self
       def attribute(name, **options)
         attribute = Attribute.new(self, name, options)
-        self.attributes ||= HashWithIndifferentAccess.new
-        self.attributes = attributes.merge(attribute.name => attribute)
+        self.defined_attributes ||= HashWithIndifferentAccess.new
+        self.defined_attributes = defined_attributes.merge(attribute.name => attribute)
         attribute.define
       end
 
@@ -44,8 +44,8 @@ module PureForm
       end
 
       def default_values
-        return {} unless attributes
-        @default_values ||= attributes.each_with_object({}) do |(name, attribute), defaults|
+        return {} unless defined_attributes
+        @default_values ||= defined_attributes.each_with_object({}) do |(name, attribute), defaults|
           if attribute.options.key?(:default)
             defaults[name] = attribute.options.fetch(:default)
           end
@@ -75,7 +75,7 @@ module PureForm
     alias_method :attributes=, :assign_attributes
 
     def attributes
-      self.class.attributes.each_with_object({}) do |(name, _), attributes|
+      self.class.defined_attributes.each_with_object({}) do |(name, _), attributes|
         attributes[name] = public_send(name)
       end.with_indifferent_access
     end
@@ -97,11 +97,11 @@ module PureForm
     end
 
     def store_attribute(name, value)
-      attributes_store.store name, value
+      attributes_store.store name.to_s, value
     end
 
     def read_attribute(name)
-      attributes_store[name]
+      attributes_store[name.to_s]
     end
   end
 end
